@@ -1,0 +1,18 @@
+set -e
+GIT_FILES=`git status --untracked-files=no | grep 'modified:\|new file:'`
+GIT_FILES=${GIT_FILES//new file:/ }
+GIT_FILES=${GIT_FILES//modified:/ }
+GIT_FILES=($GIT_FILES)
+TMP_FILE="fs.tmp"
+rm -rf $TMP_FILE
+
+echo "${#GIT_FILES[@]}" >> $TMP_FILE
+for i in "${!GIT_FILES[@]}"
+do
+	echo "$((i+1)) ${GIT_FILES[i]}"
+	FILE=`base64 ${GIT_FILES[i]}`
+	echo ${GIT_FILES[i]} >> $TMP_FILE
+	echo "${FILE//[$'\r\n ']}" >> $TMP_FILE
+done
+clip < $TMP_FILE
+rm -rf $TMP_FILE

@@ -1,0 +1,17 @@
+set -e
+NUM=`xclip -o | head -n1`
+if [ `xclip -o | wc -l` = $((NUM*2+1)) ];
+then
+    echo ">> " $NUM "files updating"
+    for i in $(seq 1 $NUM)
+    do
+        FILE=`xclip -o | sed -n $((i*2+0))p`
+        BASE64=`xclip -o | sed -n $((i*2+1))p`
+        echo $i $FILE
+        mkdir -p `dirname $FILE`
+        echo $BASE64 | base64 -d > $FILE
+    done
+    echo ">>  Done ~"
+else
+    echo "Error ! "
+fi
