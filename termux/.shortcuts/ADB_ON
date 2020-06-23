@@ -1,0 +1,6 @@
+su -c setprop service.adb.tcp.port 5555
+su -c stop adbd
+su -c start adbd
+su -c "ifconfig | grep 'inet addr'"
+read -p "Press any key to exit."
+exit

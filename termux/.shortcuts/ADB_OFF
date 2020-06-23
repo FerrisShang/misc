@@ -1,0 +1,4 @@
+su -c setprop service.adb.tcp.port -1
+su -c stop adbd
+su -c start adbd
+exit
