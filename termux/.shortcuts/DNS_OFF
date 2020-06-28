@@ -1,0 +1,2 @@
+su -c iptables -t nat -D OUTPUT 1
+su -c iptables -t nat -D OUTPUT 1

@@ -1,0 +1,2 @@
+su -c iptables -t nat -A OUTPUT -p udp --dport 53 -d 8.8.8.8 -j DNAT --to 8.8.8.8:53
+su -c iptables -t nat -A OUTPUT -p udp --dport 53 -j DNAT --to 127.0.0.1:5353
