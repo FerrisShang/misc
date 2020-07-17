@@ -6,6 +6,7 @@ if __name__ == '__main__':
         path = res[1]
         f.close()
     os.system('su -c cp {} ./wifi.txt'.format(path))
+    os.system('su -c chmod 777 ./wifi.txt')
     f = open('wifi.txt', 'r');
     cur_date = None
     start_time = end_time = None
