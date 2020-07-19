@@ -5,8 +5,8 @@ if __name__ == '__main__':
         WORK_AP = res[0]
         path = res[1]
         f.close()
-    os.system('su -c cp {} ./wifi.txt'.format(path))
-    os.system('su -c chmod 777 ./wifi.txt')
+    os.system('cp {} ./wifi.txt'.format(path))
+    os.system('chmod 555 ./wifi.txt')
     f = open('wifi.txt', 'r');
     cur_date = None
     start_time = end_time = None

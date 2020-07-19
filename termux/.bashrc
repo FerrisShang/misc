@@ -1,13 +1,15 @@
-export PATH=/bin:$PATH
-export PATH=/system/bin:$PATH
+#export PATH=/bin:$PATH
+
+ln -sf /android_data /data
+
 export PATH=$HOME/.shortcuts:$PATH
-export PATH=/data/data/com.termux/files/usr/bin:$PATH
-export PATH=$HOME/.bin/gcc-arm-none-eabi-9-2020-q2-update/bin:$PATH
+export PATH=$HOME/.bin:$PATH
 export PATH=$HOME/.bin/platform-tools:$PATH
-export LD_LIBRARY_PATH=/vendor/lib64:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/system/lib64:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/data/data/com.termux/files/usr/lib:$LD_LIBRARY_PATH
-export LD_LIBRARY_PATH=/data/data/com.termux/files/usr/include/lib:$LD_LIBRARY_PATH
+export PATH=$HOME/.bin/gcc-arm-none-eabi-9-2020-q2-update/bin:$PATH
+export PATH=$PATH:/vendor/bin:/system/sbin:/system/bin
+export LD_LIBRARY_PATH=/vendor/lib:/system/lib64:$LD_LIBRARY_PATH
+export ANDROID_DATA=/data
+export ANDROID_ROOT=/system
 
 #for file in ~/../usr/etc/bash_completion.d/* ; do
 #    source "$file"
@@ -53,7 +55,7 @@ UC=$COLOR_WHITE               # user's color
 [ $UID -eq "0" ] && UC=$COLOR_RED   # root's color
 
 #PS1="$TITLEBAR\n\[${UC}\]\u \[${COLOR_LIGHT_BLUE}\]\${PWD} \[${COLOR_BLACK}\]\$(vcprompt) \n\[${COLOR_LIGHT_GREEN}\]→\[${COLOR_NC}\] "
-PS1="\[${COLOR_LIGHT_GREEN}\]:\[${COLOR_NC}\] "
+PS1="\[${COLOR_LIGHT_GREEN}\]→|\[${COLOR_NC}\]"
 
 export LS_COLORS='rs=0:di=01;33:ln=01;36:mh=00:pi=40;33'
 ## Colorize the ls output ##
@@ -68,4 +70,5 @@ alias .='pwd'
 alias ..='cd ..;pwd'
 alias ...='cd ../..;pwd'
 alias grep='grep --color=auto'
+alias ctag='ctags -R -f .tags'
 
