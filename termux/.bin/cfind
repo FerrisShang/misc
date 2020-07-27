@@ -1,0 +1,7 @@
+find $1 \
+	-iname "*.c" -o \
+	-iname "*.h" -o \
+	-iname "*.mk" -o \
+	-iname "*.kconfig" -o \
+	-iname "*.makefile" \
+>> .cscope.filelist

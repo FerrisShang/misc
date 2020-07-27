@@ -19,7 +19,7 @@ export ANDROID_ROOT=/system
 sysctl -w net.ipv6.conf.all.disable_ipv6=0 &> /dev/null
 sysctl -w net.ipv6.conf.default.disable_ipv6=0 &> /dev/null
 
-#python3 python3-pip clang cmake gcc curl wget net-tools openssl vim git iputils-ping ctags cscope splint astyle
+#python3 python3-pip clang cmake gcc gdb curl wget net-tools openssl vim git iputils-ping ctags cscope splint astyle
 
 export TERM=xterm-color
 export CLICOLOR=1
@@ -56,6 +56,7 @@ UC=$COLOR_WHITE               # user's color
 
 #PS1="$TITLEBAR\n\[${UC}\]\u \[${COLOR_LIGHT_BLUE}\]\${PWD} \[${COLOR_BLACK}\]\$(vcprompt) \n\[${COLOR_LIGHT_GREEN}\]→\[${COLOR_NC}\] "
 PS1="\[${COLOR_LIGHT_GREEN}\]→|\[${COLOR_NC}\]"
+[ $UID -eq "0" ] && PS1="\[${COLOR_RED}\]→|\[${COLOR_NC}\]"
 
 export LS_COLORS='rs=0:di=01;33:ln=01;36:mh=00:pi=40;33'
 ## Colorize the ls output ##

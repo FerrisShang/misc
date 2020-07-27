@@ -1,0 +1,23 @@
+
+define connect
+target remote 127.0.0.1:2331
+end
+
+define nrfc
+mon reset 2
+mon device Cortex-M4
+mon flash download 1
+load
+c
+end
+
+define rc
+mon reset 1
+load
+c
+end
+
+define Q
+	quit
+end
+

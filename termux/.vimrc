@@ -19,6 +19,7 @@ Plug 'brookhong/cscope.vim'
 Plug 'vim-scripts/taglist.vim'
 Plug 'MattesGroeger/vim-bookmarks'
 Plug 't9md/vim-quickhl'
+Plug 'kien/ctrlp.vim'
 call plug#end()
 
 nmap > : vertical res +1<CR>
@@ -37,11 +38,12 @@ function! QuickFix_toggle()
 			return
 		endif
 	endfor
-	execute "vert botright copen \| vert resize 200"
+"	execute 'vert botright copen \| vert resize 200'
+	execute "copen \| res 64"
 endfunction
 
-execute "set <M-k>=\ek"
-noremap <M-k> : find
+execute "set <M-K>=\eK"
+noremap <M-K> : find<Space>
 execute "set <M-q>=\eq"
 noremap <M-q> : cn<CR>
 execute "set <M-w>=\ew"
@@ -66,7 +68,7 @@ aug END
 
 " CSCOPE
 let g:cscope_silent = 1
-let g:cscope_auto_update = 1
+let g:cscope_auto_update = 0
 nnoremap fa :call CscopeFindInteractive(expand('<cword>'))<CR>
 nnoremap <leader>f :call ToggleLocationList()<CR>
 
@@ -95,12 +97,6 @@ set statusline+=%{SyntasticStatuslineFlag()}
 set statusline+=%*
 let g:syntastic_loc_list_height = 3
 
-" ctags
-" set tags+=.tags;/
-" set tags+=tags;/
-" set autochdir
-" let g:autotagTagsFile=".tags"
-
 "BookmarkToggle
 let g:bookmark_auto_save = 1
 let g:bookmark_sign = '♥'
@@ -118,134 +114,91 @@ xmap <M-v> <Plug>(quickhl-manual-this)
 execute "set <M-c>=\ec"
 nmap <M-c> <Plug>(quickhl-manual-reset)
 
+" ctrlp
+let g:ctrlp_by_filename = 1
+let g:ctrlp_clear_cache_on_exit = 0
+let g:ctrlp_working_path_mode = 'a'
+let g:ctrlp_cache_dir = './.ctrlp_cache'
+execute "set <M-k>=\ek"
+let g:ctrlp_map = '<M-k>'
 
-" ------------
+" ------------ Cscope -> QuickFix
+" Close quickfix window after select an item
+autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR>
 " This script adds keymap macro as follows:
-" <C-\> s: Find this C symbol
-" <C-\> g: Find this definition
-" <C-\> d: Find functions called by this function
-" <C-\> c: Find functions calling this function
-" <C-\> t: Find this text string
-" <C-\> e: Find this egrep pattern
-" <C-\> f: Find this file
-" <C-\> i: Find files #including this file
-" "this" means <cword> or <cfile> on the cursor.
-
-if !exists("Cscope_OpenQuickfixWindow")
-	let Cscope_OpenQuickfixWindow = 1
-endif
-
-if !exists("Cscope_JumpError")
-	let Cscope_JumpError = 1
-endif
-
-" RunCscope()
-" Run the cscope command using the supplied option and pattern
-function! RunCscope(...)
-	let usage = "Usage: Cscope {type} {pattern} [{file}]."
-	let usage = usage . " {type} is [sgdctefi01234678]."
-	if !exists("a:1") || !exists("a:2")
-		echohl WarningMsg | echomsg usage | echohl None
-		return
-	endif
-	let cscope_opt = a:1
-	let pattern = a:2
-	let openwin = g:Cscope_OpenQuickfixWindow
-	let jumperr =  g:Cscope_JumpError
-	if cscope_opt == '0' || cscope_opt == 's'
-		let cmd = "cscope -L -0 " . pattern
-	elseif cscope_opt == '1' || cscope_opt == 'g'
-		let cmd = "cscope -L -1 " . pattern
-	elseif cscope_opt == '2' || cscope_opt == 'd'
-		let cmd = "cscope -L -2 " . pattern
-	elseif cscope_opt == '3' || cscope_opt == 'c'
-		let cmd = "cscope -L -3 " . pattern
-	elseif cscope_opt == '4' || cscope_opt == 't'
-		let cmd = "cscope -L -4 " . pattern
-	elseif cscope_opt == '6' || cscope_opt == 'e'
-		let cmd = "cscope -L -6 " . pattern
-	elseif cscope_opt == '7' || cscope_opt == 'f'
-		let cmd = "cscope -L -7 " . pattern
-		let openwin = 0
-		let jumperr = 1
-	elseif cscope_opt == '8' || cscope_opt == 'i'
-		let cmd = "cscope -L -8 " . pattern
-	else
-		echohl WarningMsg | echomsg usage | echohl None
-		return
-	endif
-	if exists("a:3")
-		let cmd = cmd . " " . a:3
-	endif
-	let cmd_output = system(cmd)
-
-	if cmd_output == ""
-		echohl WarningMsg |
-		\ echomsg "Error: Pattern " . pattern . " not found" |
-		\ echohl None
-		return
-	endif
-
-	let tmpfile = tempname()
-	let curfile = expand("%")
-
-	if &modified && (!&autowrite || curfile == "")
-		let jumperr = 0
-	endif
-
-	exe "redir! > " . tmpfile
-	if curfile != ""
-		silent echon curfile . " dummy " . line(".") . " " . getline(".") . "\n"
-		silent let ccn = 2
-	else
-		silent let ccn = 1
-	endif
-	silent echon cmd_output
-	redir END
-
-	" If one item is matched, window will not be opened.
-"	let cmd = "wc -l < " . tmpfile
-"	let cmd_output = system(cmd)
-"	exe "let lines =" . cmd_output
-"	if lines == 2
-"		let openwin = 0
-"	endif
-
-	let old_efm = &efm
-	set efm=%f\ %*[^\ ]\ %l\ %m
-
-	exe "silent! cfile " . tmpfile
-	let &efm = old_efm
-
-	" Open the cscope output window
-	if openwin == 1
-		vert botright copen
-		vert resize 200
-	endif
-
-	" Jump to the first error
-	if jumperr == 1
-		exe "cc " . ccn
-	endif
-
-	call delete(tmpfile)
-endfunction
-
-" Define the set of Cscope commands
-command! -nargs=* Cscope call RunCscope(<f-args>)
-
-" nmap <C-@><C-@>s :Cscope s <C-R>=expand("<cword>")<CR><CR>
-" nmap <C-@><C-@>g :Cscope g <C-R>=expand("<cword>")<CR><CR>
-" nmap <C-@><C-@>d :Cscope d <C-R>=expand("<cword>")<CR> <C-R>=expand("%")<CR><CR>
-" nmap <C-@><C-@>c :Cscope c <C-R>=expand("<cword>")<CR><CR>
-" nmap <C-@><C-@>t :Cscope t <C-R>=expand("<cword>")<CR><CR>
-" nmap <C-@><C-@>e :Cscope e <C-R>=expand("<cword>")<CR><CR>
-" nmap <C-@><C-@>f :Cscope f <C-R>=expand("<cfile>")<CR><CR>
-" nmap <C-@><C-@>i :Cscope i ^<C-R>=expand("<cfile>")<CR>$<CR>
+" Find assignments to this symbol
+nmap fa : cs f a  <cword><CR>
+" Find this C symbol
+nmap fs : cs f s  <cword><CR>
+" Find this definition
+nmap fg : cs f g  <cword><CR>
+" Find functions called by this function
+nmap fd : cs f d  <cword><CR>
+" Find functions calling this function
+nmap fc : cs f c  <cword><CR>
+" Find this text string
+nmap ft : cs f t  <cword><CR>
+" Find this egrep pattern
+nmap fe : cs f e<Space>
+" Find this file
+nmap ff : cs f f  <cfile><CR>
+" Find files #including this file
+nmap fi : cs f i  <cfile><CR>
 
 execute "set <M-e>=\ee"
-noremap <M-e> : Cscope g <C-R>=expand("<cword>")<CR><CR>
+noremap <M-e> : cs f g <cword><CR>
 execute "set <M-r>=\er"
-noremap <M-r> : Cscope c <C-R>=expand("<cword>")<CR><CR>
+noremap <M-r> : cs f s <cword><CR>
+execute "set <M-t>=\et"
+noremap <M-t> : cs f a <cword><CR>
 
+
+function! GdbOutput()
+	if filereadable("a.axf")
+		! arm-none-eabi-gdb a.axf
+	elseif filereadable("a.out")
+		! arm-none-eabi-gdb a.out
+	elseif filereadable("a.exe")
+		! gdb a.exe
+	endif
+endfunction
+let g:cscopeFileListName=".cscope.filelist"
+function! CscopeDbUpdate()
+	if filereadable(g:cscopeFileListName)
+		exec 'silent !cscope -bq -i '.g:cscopeFileListName
+		redraw!
+	else
+		echo "Cscope: '" . g:cscopeFileListName . "' not found."
+	endif
+endfunction
+
+if filereadable(g:cscopeFileListName)
+	call CscopeDbUpdate()
+	silent cscope add cscope.out
+endif
+
+execute "set <M-Q>=\eQ"
+noremap <M-Q> : !make clean<CR>
+execute "set <M-A>=\eA"
+noremap <M-A> : call CscopeDbUpdate()<CR>
+execute "set <M-W>=\eW"
+noremap <M-W> <C-b>
+execute "set <M-S>=\eS"
+noremap <M-S> <C-f>
+execute "set <M-D>=\eD"
+noremap <M-D> : call GdbOutput()<CR>
+execute "set <M-E>=\eE"
+noremap <M-E> : !make menuconfig<CR>
+execute "set <M-C>=\eC"
+noremap <M-C> : make -j16<CR>
+execute "set <M-Z>=\eZ"
+noremap <M-Z> : tabe ~/.gdbinit<CR>
+execute "set <M-X>=\eX"
+noremap <M-X> : tabe ./.gdbinit.local<CR>
+execute "set <M-1>=\e1"
+noremap <M-1> [[
+execute "set <M-2>=\e2"
+noremap <M-2> ]]
+execute "set <M-l>=\el"
+imap <M-l> <C-c>
 
