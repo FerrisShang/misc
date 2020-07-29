@@ -72,4 +72,5 @@ alias ..='cd ..;pwd'
 alias ...='cd ../..;pwd'
 alias grep='grep --color=auto'
 alias ctag='ctags -R -f .tags'
+alias f='find -name '
 

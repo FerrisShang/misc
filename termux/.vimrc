@@ -7,7 +7,11 @@ set autoindent
 set incsearch
 set ignorecase
 set smartcase
+set linebreak
+set scrolloff=3
 set path+=$PWD/**
+set encoding=utf-8
+set dir=/tmp/
 
 call plug#begin()
 Plug 'JBakamovic/yaflandia'
@@ -24,7 +28,7 @@ call plug#end()
 
 nmap > : vertical res +1<CR>
 nmap < : vertical res -1<CR>
-nmap Q <C-w>w :q<CR>
+nmap Q :q<CR>
 nmap <leader>s : %!astyle<CR>
 nmap . <CR><C-w>wj<CR>
 nmap , <CR><C-w>wk<CR>
@@ -35,6 +39,7 @@ function! QuickFix_toggle()
 		let bnum = winbufnr(i)
 		if getbufvar(bnum, '&buftype') == 'quickfix'
 			cclose
+			file
 			return
 		endif
 	endfor
@@ -60,6 +65,52 @@ execute "set <M-x>=\ex"
 noremap <M-x> *
 execute "set <M-f>=\ef"
 noremap <M-f> :grep -r '\b<cword>\b' **/*<CR>
+execute "set <M-Q>=\eQ"
+noremap <M-Q> : !make clean<CR>
+execute "set <M-A>=\eA"
+noremap <M-A> : call CscopeDbUpdate()<CR>
+execute "set <M-W>=\eW"
+noremap <M-W> <C-b>
+execute "set <M-S>=\eS"
+noremap <M-S> <C-f>
+execute "set <M-D>=\eD"
+noremap <M-D> : call GdbOutput()<CR>
+execute "set <M-E>=\eE"
+noremap <M-E> : !make menuconfig<CR>
+execute "set <M-C>=\eC"
+"noremap <M-C> : silent make -j16<CR>:redraw!<CR>
+noremap <M-C> : silent make -j16<CR>:redraw!<CR>: call QuickFix_toggle()<CR>
+execute "set <M-Z>=\eZ"
+noremap <M-Z> : tabe ~/.gdbinit<CR>
+execute "set <M-X>=\eX"
+noremap <M-X> : tabe ./.gdbinit.local<CR>
+execute "set <M-1>=\e1"
+noremap <M-1> [[
+execute "set <M-2>=\e2"
+noremap <M-2> ]]
+execute "set <M-h>=\eh"
+noremap <M-h> : call SwitchExt()<CR>
+execute "set <M-l>=\el"
+imap <M-l> <C-c>
+
+function! SwitchExt()
+	let s:ext = expand('%:e')
+	if s:ext == "h"
+		let s:newname = expand('%<') . ".c"
+	elseif s:ext == "c"
+		let s:newname = expand('%<') . ".h"
+	endif
+	if exists(s:newname)
+		execute "e! " . s:newname
+	else
+		if s:ext == "h"
+			let s:newname = expand('%:t:r<') . ".c"
+		elseif s:ext == "c"
+			let s:newname = expand('%:t:r<') . ".h"
+		endif
+		execute "find " . s:newname
+	endif
+endfunction
 
 aug QFClose
 	au!
@@ -81,9 +132,10 @@ let g:Tlist_Close_On_Select = 1
 let g:Tlist_Exit_OnlyWindow = 1
 let g:Tlist_Auto_Update = 0
 let g:Tlist_Auto_Highlight_Tag = 1
+set ut=500
 
 " NERDTree
-nmap <C-K> : NERDTreeToggleVCS<CR>
+nmap <C-K> : NERDTreeFind<CR>
 
 " syntastic
 execute "set <M-i>=\ei"
@@ -115,7 +167,7 @@ execute "set <M-c>=\ec"
 nmap <M-c> <Plug>(quickhl-manual-reset)
 
 " ctrlp
-let g:ctrlp_by_filename = 1
+let g:ctrlp_by_filename = 0
 let g:ctrlp_clear_cache_on_exit = 0
 let g:ctrlp_working_path_mode = 'a'
 let g:ctrlp_cache_dir = './.ctrlp_cache'
@@ -124,7 +176,7 @@ let g:ctrlp_map = '<M-k>'
 
 " ------------ Cscope -> QuickFix
 " Close quickfix window after select an item
-autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR>
+autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR>:file<CR>
 " This script adds keymap macro as follows:
 " Find assignments to this symbol
 nmap fa : cs f a  <cword><CR>
@@ -144,6 +196,8 @@ nmap fe : cs f e<Space>
 nmap ff : cs f f  <cfile><CR>
 " Find files #including this file
 nmap fi : cs f i  <cfile><CR>
+" Cscope custom
+nmap FF : cs f<Space>
 
 execute "set <M-e>=\ee"
 noremap <M-e> : cs f g <cword><CR>
@@ -164,41 +218,20 @@ function! GdbOutput()
 endfunction
 let g:cscopeFileListName=".cscope.filelist"
 function! CscopeDbUpdate()
+	silent cscope reset
 	if filereadable(g:cscopeFileListName)
 		exec 'silent !cscope -bq -i '.g:cscopeFileListName
 		redraw!
 	else
-		echo "Cscope: '" . g:cscopeFileListName . "' not found."
+		echo "Cscope: '" . g:cscopeFileListName . "' not found. Create cscope.out automatily. "
+		exec 'silent !cscope -bqR'
+		redraw!
 	endif
+	silent cscope add cscope.out
 endfunction
 
 if filereadable(g:cscopeFileListName)
 	call CscopeDbUpdate()
-	silent cscope add cscope.out
 endif
-
-execute "set <M-Q>=\eQ"
-noremap <M-Q> : !make clean<CR>
-execute "set <M-A>=\eA"
-noremap <M-A> : call CscopeDbUpdate()<CR>
-execute "set <M-W>=\eW"
-noremap <M-W> <C-b>
-execute "set <M-S>=\eS"
-noremap <M-S> <C-f>
-execute "set <M-D>=\eD"
-noremap <M-D> : call GdbOutput()<CR>
-execute "set <M-E>=\eE"
-noremap <M-E> : !make menuconfig<CR>
-execute "set <M-C>=\eC"
-noremap <M-C> : make -j16<CR>
-execute "set <M-Z>=\eZ"
-noremap <M-Z> : tabe ~/.gdbinit<CR>
-execute "set <M-X>=\eX"
-noremap <M-X> : tabe ./.gdbinit.local<CR>
-execute "set <M-1>=\e1"
-noremap <M-1> [[
-execute "set <M-2>=\e2"
-noremap <M-2> ]]
-execute "set <M-l>=\el"
-imap <M-l> <C-c>
+silent cscope add cscope.out
 
