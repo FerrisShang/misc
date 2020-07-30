@@ -17,7 +17,6 @@ call plug#begin()
 Plug 'JBakamovic/yaflandia'
 Plug 'scrooloose/syntastic'
 Plug 'ajh17/vimcompletesme'
-Plug 'mattesgroeger/vim-bookmarks'
 Plug 'scrooloose/nerdtree'
 Plug 'brookhong/cscope.vim'
 Plug 'vim-scripts/taglist.vim'
@@ -28,11 +27,24 @@ call plug#end()
 
 nmap > : vertical res +1<CR>
 nmap < : vertical res -1<CR>
-nmap Q :q<CR>
 nmap <leader>s : %!astyle<CR>
 nmap . <CR><C-w>wj<CR>
 nmap , <CR><C-w>wk<CR>
 let g:netrw_keepdir= 0
+
+let g:save_session = 1
+nmap Q : !rm -f .vim-session<CR>:let g:save_session=0<CR>:qa<CR>
+function! MakeSession()
+	if g:save_session == 1
+		exe "mksession! .vim-session"
+	endif
+endfunction
+au VimLeave * :call MakeSession()
+if filereadable('.vim-session')
+	autocmd VimEnter * if argc()==0|source .vim-session|endif
+endif
+
+
 
 function! QuickFix_toggle()
 	for i in range(1, winnr('$'))
@@ -44,7 +56,7 @@ function! QuickFix_toggle()
 		endif
 	endfor
 "	execute 'vert botright copen \| vert resize 200'
-	execute "copen \| res 64"
+	execute "copen \| res ".winheight(0)/2
 endfunction
 
 execute "set <M-K>=\eK"
@@ -78,7 +90,6 @@ noremap <M-D> : call GdbOutput()<CR>
 execute "set <M-E>=\eE"
 noremap <M-E> : !make menuconfig<CR>
 execute "set <M-C>=\eC"
-"noremap <M-C> : silent make -j16<CR>:redraw!<CR>
 noremap <M-C> : silent make -j16<CR>:redraw!<CR>: call QuickFix_toggle()<CR>
 execute "set <M-Z>=\eZ"
 noremap <M-Z> : tabe ~/.gdbinit<CR>
@@ -92,6 +103,9 @@ execute "set <M-h>=\eh"
 noremap <M-h> : call SwitchExt()<CR>
 execute "set <M-l>=\el"
 imap <M-l> <C-c>
+imap <Esc> <C-c>:file<CR>
+nmap <C-l> : only<CR>
+imap ` <C-c>
 
 function! SwitchExt()
 	let s:ext = expand('%:e')
@@ -150,13 +164,22 @@ set statusline+=%*
 let g:syntastic_loc_list_height = 3
 
 "BookmarkToggle
+let g:bookmark_save_per_working_dir = 1
+let g:bookmark_manage_per_buffer = 1
 let g:bookmark_auto_save = 1
 let g:bookmark_sign = '♥'
 let g:bookmark_highlight_lines = 1
+let g:bookmark_disable_ctrlp = 1
 execute "set <M-b>=\eb"
 noremap <M-b> : BookmarkShowAll<CR>
 execute "set <M-m>=\em"
 noremap <M-m> : BookmarkToggle<CR>
+if filereadable('.vim-bookmarks')
+	autocmd VimEnter * BookmarkLoad .vim-bookmarks
+	if !filereadable('.vim-session') && argc()==0
+		autocmd VimEnter * BookmarkShowAll
+	endif
+endif
 
 " t9md/vim-quickhl
 let g:quickhl_cword_enable_at_startup = 1
