@@ -1,2 +1,5 @@
 sshd
+su -c "ifconfig | grep 'inet addr'"
+read -p "Press any key to exit." X
+killall sshd
 exit

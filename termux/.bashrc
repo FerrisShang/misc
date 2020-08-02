@@ -66,6 +66,7 @@ alias ll='ls -la'
 ## Show hidden files ##
 alias l.='ls -d .* --color=auto'
 alias l='ls'
+alias vi='vim'
 alias python='python3'
 alias .='pwd'
 alias ..='cd ..;pwd'

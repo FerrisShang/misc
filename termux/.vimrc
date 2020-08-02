@@ -12,6 +12,7 @@ set scrolloff=3
 set path+=$PWD/**
 set encoding=utf-8
 set dir=/tmp/
+set backspace=2
 
 call plug#begin()
 Plug 'JBakamovic/yaflandia'
@@ -23,6 +24,7 @@ Plug 'vim-scripts/taglist.vim'
 Plug 'MattesGroeger/vim-bookmarks'
 Plug 't9md/vim-quickhl'
 Plug 'kien/ctrlp.vim'
+Plug 'airblade/vim-gitgutter'
 call plug#end()
 
 nmap > : vertical res +1<CR>
@@ -146,6 +148,7 @@ let g:Tlist_Close_On_Select = 1
 let g:Tlist_Exit_OnlyWindow = 1
 let g:Tlist_Auto_Update = 0
 let g:Tlist_Auto_Highlight_Tag = 1
+let g:Tlist_WinWidth = winwidth(0)/3
 set ut=500
 
 " NERDTree
@@ -174,11 +177,15 @@ execute "set <M-b>=\eb"
 noremap <M-b> : BookmarkShowAll<CR>
 execute "set <M-m>=\em"
 noremap <M-m> : BookmarkToggle<CR>
-if filereadable('.vim-bookmarks')
-	autocmd VimEnter * BookmarkLoad .vim-bookmarks
-	if !filereadable('.vim-session') && argc()==0
-		autocmd VimEnter * BookmarkShowAll
+if argc()==0
+	if filereadable('.vim-bookmarks')
+		autocmd VimEnter * BookmarkLoad .vim-bookmarks
+		if !filereadable('.vim-session')
+			autocmd VimEnter * BookmarkShowAll
+		endif
 	endif
+else
+	let g:save_session = 0
 endif
 
 " t9md/vim-quickhl
@@ -232,11 +239,11 @@ noremap <M-t> : cs f a <cword><CR>
 
 function! GdbOutput()
 	if filereadable("a.axf")
-		! arm-none-eabi-gdb a.axf
+		! arm-none-eabi-gdb -x .gdbinit.local a.axf
 	elseif filereadable("a.out")
-		! arm-none-eabi-gdb a.out
+		! arm-none-eabi-gdb -x .gdbinit.local a.out
 	elseif filereadable("a.exe")
-		! gdb a.exe
+		! gdb -x .gdbinit.local a.exe
 	endif
 endfunction
 let g:cscopeFileListName=".cscope.filelist"

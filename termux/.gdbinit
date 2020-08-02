@@ -1,4 +1,2 @@
-source .gdbscript/dstruct.gdb
-
-source .gdbinit.local
+source ~/.gdbscript/dstruct.gdb
 
