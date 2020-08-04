@@ -8,7 +8,6 @@ define plink
 			set $start_cur = ($arg1*)($arg0)
 		else
 			if $arg3 == 0
-				printf "666\n"
 				set $start_cur = ($arg1*)($arg0)
 			else
 				set $start_cur = (struct $arg1*)($arg0)

@@ -1,6 +1,7 @@
 rm -rf /tmp/btsnoop_hci.log
 
 adb connect $1
+sleep 1
 adb shell "su -c cp /data/misc/bluetooth/logs/btsnoop_hci.log /sdcard/"
 adb pull /sdcard/btsnoop_hci.log /tmp/
 

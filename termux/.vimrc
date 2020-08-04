@@ -13,6 +13,12 @@ set path+=$PWD/**
 set encoding=utf-8
 set dir=/tmp/
 set backspace=2
+set tm=10
+set t_Co=256
+exec "silent !stty -ixon"
+exec "try\n let &t_TI = '' \ncatch\nendtry"
+exec "try\n let &t_TE = '' \ncatch\nendtry"
+let g:temp_dir = '/tmp'
 
 call plug#begin()
 Plug 'JBakamovic/yaflandia'
@@ -25,28 +31,34 @@ Plug 'MattesGroeger/vim-bookmarks'
 Plug 't9md/vim-quickhl'
 Plug 'kien/ctrlp.vim'
 Plug 'airblade/vim-gitgutter'
+Plug 'bling/vim-airline'
 call plug#end()
 
-nmap > : vertical res +1<CR>
-nmap < : vertical res -1<CR>
+nmap = : vertical res +1<CR>
+nmap - : vertical res -1<CR>
 nmap <leader>s : %!astyle<CR>
-nmap . <CR><C-w>wj<CR>
-nmap , <CR><C-w>wk<CR>
+nmap , <C-w>W
+nmap . <C-w>w
+nmap < : bp<CR>
+nmap > : bn<CR>
+nmap ? : bd<CR>
 let g:netrw_keepdir= 0
 
+" Session config for workspace
+exec "silent !mkdir -p " . g:temp_dir . "/.vim-session/"
+let g:session_path = getcwd() . '/.session'
+let g:session_path = g:temp_dir . '/.vim-session/' . substitute(g:session_path, "/", "_", "g")
 let g:save_session = 1
-nmap Q : !rm -f .vim-session<CR>:let g:save_session=0<CR>:qa<CR>
+nmap Q : exec 'silent !rm -f '.g:session_path <CR>:let g:save_session=0<CR>:qa!<CR>'
 function! MakeSession()
 	if g:save_session == 1
-		exe "mksession! .vim-session"
+		exec "mksession! " . g:session_path
 	endif
 endfunction
-au VimLeave * :call MakeSession()
-if filereadable('.vim-session')
-	autocmd VimEnter * if argc()==0|source .vim-session|endif
+if filereadable(g:session_path)
+	exec 'if argc()==0|silent source '. g:session_path .'|endif'
 endif
-
-
+autocmd VimLeave * :call MakeSession()
 
 function! QuickFix_toggle()
 	for i in range(1, winnr('$'))
@@ -105,10 +117,9 @@ execute "set <M-h>=\eh"
 noremap <M-h> : call SwitchExt()<CR>
 execute "set <M-l>=\el"
 imap <M-l> <C-c>
-imap <Esc> <C-c>:file<CR>
 nmap <C-l> : only<CR>
-imap ` <C-c>
 
+" .c/.h quich switch
 function! SwitchExt()
 	let s:ext = expand('%:e')
 	if s:ext == "h"
@@ -132,12 +143,6 @@ aug QFClose
 	au!
 	au WinEnter * if winnr('$') == 1 && &buftype == "quickfix"|q|endif
 aug END
-
-" CSCOPE
-let g:cscope_silent = 1
-let g:cscope_auto_update = 0
-nnoremap fa :call CscopeFindInteractive(expand('<cword>'))<CR>
-nnoremap <leader>f :call ToggleLocationList()<CR>
 
 " taglist
 execute "set <M-j>=\ej"
@@ -167,20 +172,22 @@ set statusline+=%*
 let g:syntastic_loc_list_height = 3
 
 "BookmarkToggle
-let g:bookmark_save_per_working_dir = 1
-let g:bookmark_manage_per_buffer = 1
-let g:bookmark_auto_save = 1
 let g:bookmark_sign = '♥'
-let g:bookmark_highlight_lines = 1
 let g:bookmark_disable_ctrlp = 1
-execute "set <M-b>=\eb"
-noremap <M-b> : BookmarkShowAll<CR>
+let g:bookmark_auto_save = 0
+let g:bookmark_save_per_working_dir = 1
+let g:bookmark_manage_per_buffer = 0
 execute "set <M-m>=\em"
 noremap <M-m> : BookmarkToggle<CR>
+nmap m : BookmarkShowAll<CR>
+exec "silent !mkdir -p " . g:temp_dir . "/.vim-bookmarks/"
+let g:bookmark_path = getcwd() . '/.bookmark'
+let g:bookmark_path = g:temp_dir . '/.vim-bookmarks/' . substitute(g:bookmark_path, "/", "_", "g")
+exec 'autocmd VimEnter * BookmarkLoad ' . g:bookmark_path
+exec 'autocmd VimLeave * BookmarkSave ' . g:bookmark_path
 if argc()==0
-	if filereadable('.vim-bookmarks')
-		autocmd VimEnter * BookmarkLoad .vim-bookmarks
-		if !filereadable('.vim-session')
+	if filereadable(g:bookmark_path)
+		if !filereadable(g:session_path)
 			autocmd VimEnter * BookmarkShowAll
 		endif
 	endif
@@ -189,24 +196,25 @@ else
 endif
 
 " t9md/vim-quickhl
-let g:quickhl_cword_enable_at_startup = 1
 execute "set <M-v>=\ev"
 nmap <M-v> <Plug>(quickhl-manual-this)
-xmap <M-v> <Plug>(quickhl-manual-this)
 execute "set <M-c>=\ec"
-nmap <M-c> <Plug>(quickhl-manual-reset)
-
+nmap <M-c> :noh<CR><Plug>(quickhl-manual-reset)
+nmap ` : QuickhlCwordToggle<CR>
 " ctrlp
 let g:ctrlp_by_filename = 0
 let g:ctrlp_clear_cache_on_exit = 0
 let g:ctrlp_working_path_mode = 'a'
-let g:ctrlp_cache_dir = './.ctrlp_cache'
+let g:ctrlp_cache_dir = g:temp_dir.'/.ctrlp_cache'.getcwd()
 execute "set <M-k>=\ek"
 let g:ctrlp_map = '<M-k>'
 
+" CSCOPE
+let g:cscope_silent = 1
+let g:cscope_auto_update = 0
 " ------------ Cscope -> QuickFix
 " Close quickfix window after select an item
-autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR>:file<CR>
+autocmd FileType qf nnoremap <buffer> <CR> <CR>:cclose<CR><C-g>
 " This script adds keymap macro as follows:
 " Find assignments to this symbol
 nmap fa : cs f a  <cword><CR>
@@ -230,12 +238,13 @@ nmap fi : cs f i  <cfile><CR>
 nmap FF : cs f<Space>
 
 execute "set <M-e>=\ee"
-noremap <M-e> : cs f g <cword><CR>
+noremap <M-e> : cs f g <cword><CR><C-g>
 execute "set <M-r>=\er"
 noremap <M-r> : cs f s <cword><CR>
+execute "set <M-R>=\eR"
+noremap <M-R> : cs f c <cword><CR>
 execute "set <M-t>=\et"
-noremap <M-t> : cs f a <cword><CR>
-
+noremap <M-t> : cs f e<Space>
 
 function! GdbOutput()
 	if filereadable("a.axf")
@@ -247,21 +256,41 @@ function! GdbOutput()
 	endif
 endfunction
 let g:cscopeFileListName=".cscope.filelist"
+let g:cscope_path = getcwd()
+let g:cscope_path = g:temp_dir . '/.cscope_cache/' . substitute(g:cscope_path, "/", "_", "g") . '/'
+exec "silent !mkdir -p " . g:cscope_path
 function! CscopeDbUpdate()
 	silent cscope reset
 	if filereadable(g:cscopeFileListName)
-		exec 'silent !cscope -bq -i '.g:cscopeFileListName
+		exec 'silent !cscope -bq -f '.g:cscope_path.'cscope.out -i '.g:cscopeFileListName
 		redraw!
 	else
 		echo "Cscope: '" . g:cscopeFileListName . "' not found. Create cscope.out automatily. "
-		exec 'silent !cscope -bqR'
+		exec 'silent !cscope -bqR -f'.g:cscope_path.'cscope.out'
 		redraw!
 	endif
-	silent cscope add cscope.out
+	exec 'silent cscope add '.g:cscope_path.'cscope.out'
 endfunction
 
 if filereadable(g:cscopeFileListName)
 	call CscopeDbUpdate()
 endif
-silent cscope add cscope.out
+exec 'silent cscope add '.g:cscope_path.'cscope.out'
+
+" vim airline
+let g:airline#extensions#tabline#enabled = 1
+let g:airline#extensions#tabline#left_sep = '>'
+let g:airline#extensions#tabline#formatter = 'unique_tail'
+let g:current_time=system('date | tr -d "\n"')
+"let g:airline_section_a = ''
+let g:airline_section_b = '%{g:current_time}'
+let g:airline_section_c = ''
+let g:airline_section_x = ''
+let g:airline_section_y = ''
+let g:airline_section_error = ''
+let timer = timer_start(1000, 'UpdateTime',{'repeat':-1})
+function! UpdateTime(timer)
+	let g:current_time=system('date | tr -d "\n"')
+	let &ro = &ro
+endfunction
 
