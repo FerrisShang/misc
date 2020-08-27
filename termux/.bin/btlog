@@ -6,5 +6,5 @@ adb shell "su -c cp /data/misc/bluetooth/logs/btsnoop_hci.log /sdcard/"
 adb pull /sdcard/btsnoop_hci.log /tmp/
 
 if [ -f /tmp/btsnoop_hci.log ]; then
-	wireshark /tmp/btsnoop_hci.log & > /dev/null
+	wireshark /tmp/btsnoop_hci.log > /dev/null 2>&1 &
 fi
