@@ -1,4 +1,36 @@
 
+define memset
+    if $argc != 3
+        help memset
+    else
+        set $st_addr = $arg0
+        set $en_addr = $arg0+$arg2
+        while($st_addr < $en_addr)
+            set *(unsigned char*)$st_addr = $arg1
+            set $st_addr = $st_addr + 1
+        end
+    end
+end
+document memset
+    Example: memset s c n
+end
+
+define memark
+    if $argc != 2
+        help memark
+    else
+        set $st_addr = $arg0 & (~0x3)
+        set $en_addr = $arg0+$arg1
+        while($st_addr < $en_addr)
+            set *(unsigned int*)$st_addr = $st_addr
+            set $st_addr = $st_addr + 4
+        end
+    end
+end
+document memark
+    Example: memark s n
+end
+
 define plink
     if $argc < 3
         help plink

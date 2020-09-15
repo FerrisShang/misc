@@ -307,7 +307,6 @@ let g:cscope_path = getcwd()
 let g:cscope_path = g:temp_dir . '/.cscope_cache/' . substitute(g:cscope_path, "/", "_", "g") . '/'
 exec "silent !mkdir -p " . g:cscope_path
 function! CscopeDbUpdate()
-    silent cscope reset
     if filereadable(g:cscopeFileListName)
         exec 'silent !cscope -bq -f '.g:cscope_path.'cscope.out -i '.g:cscopeFileListName
         redraw!
@@ -316,6 +315,7 @@ function! CscopeDbUpdate()
         exec 'silent !cscope -bqR -f'.g:cscope_path.'cscope.out'
         redraw!
     endif
+    silent cscope reset
     exec 'silent cscope add '.g:cscope_path.'cscope.out'
 endfunction
 
@@ -323,6 +323,7 @@ if filereadable(g:cscopeFileListName)
     call CscopeDbUpdate()
 endif
 if filereadable(g:cscope_path.'cscope.out')
+    silent cscope reset
     exec 'silent cscope add '.g:cscope_path.'cscope.out'
 endif
 
