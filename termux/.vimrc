@@ -235,7 +235,7 @@ execute "set <M-c>=\ec"
 nmap <M-c> :noh<CR><Plug>(quickhl-manual-reset)<C-g>
 nmap ` : QuickhlCwordToggle<CR>
 " ctrlp
-let g:ctrlp_by_filename = 0
+let g:ctrlp_by_filename = 1
 let g:ctrlp_clear_cache_on_exit = 0
 let g:ctrlp_working_path_mode = 'a'
 let g:ctrlp_cache_dir = g:temp_dir.'/.ctrlp_cache'.getcwd()
@@ -271,7 +271,7 @@ nmap fi : cs f i  <cfile><CR>
 nmap FF : cs f<Space>
 
 execute "set <M-E>=\eE"
-noremap <M-E> : call FindDefine()<CR>
+noremap <M-E> : cs f a <cword><CR>
 execute "set <M-r>=\er"
 noremap <M-r> : cs f s <cword><CR>
 execute "set <M-R>=\eR"
@@ -280,6 +280,8 @@ execute "set <M-f>=\ef"
 noremap <M-f> : cs f e<Space>
 execute "set <M-e>=\ee"
 noremap <M-e> : cs f g <cword><CR><C-g>
+execute "set <M-o>=\eo"
+noremap <M-o> : call FindDefine()<CR>
 
 function! FindDefine()
     exec "silent only"

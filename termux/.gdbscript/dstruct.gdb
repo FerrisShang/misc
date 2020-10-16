@@ -90,7 +90,8 @@ define sp_symbol_dump
     set $i=0
     while($i<$dump_num)
         set $symbol_addr = *(unsigned int*)($i * 4 + $sp)
-        printf "0x%08x -> ", $symbol_addr
+        set $sp_addr = ($i * 4 + $sp)
+        printf "0x%08x(0x%08x) -> ", $sp_addr, $symbol_addr
         info symbol $symbol_addr
         set $i = $i + 1
     end
